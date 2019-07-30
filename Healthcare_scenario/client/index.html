@@ -1,0 +1,183 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hyperledger Fabric ABAC Application</title>
+    <link rel="icon" href="favicon.png" type="image/gif">
+
+    <!-- require jquery and bootstrap scripts -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+    
+    <!-- adding style here -->
+    <style type="text/css">
+      header{
+        background-color: lightgray;
+        font-size:20px;
+        padding:15px;
+      }
+      header, .form-group{
+        margin-bottom: 3%;
+      }
+      .form-group{
+        width:50%;
+      }
+      #body{
+        margin-left:3%;
+        margin-right:3%;
+      }
+      .form-control{
+        margin: 8px;
+      }
+      #right_header{
+        width:20%;
+        font-size:15px;
+        margin-right:0px;
+      }
+      #left_header{
+        margin-left:0;
+        width:40%;
+        display:inline-block;
+      } 
+      #id {
+        width:49%;
+        display: inline-block;
+      }
+      table {
+          font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+      }
+      td, th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+      }
+      tr:nth-child(even) {
+          background-color: #dddddd;
+      }
+    </style>
+  </head>
+  <body ng-app="application" ng-controller="appController">
+    <header>
+      <div id="left_header">Hyperledger Fabric ABAC Application</div>
+      <i id="right_header">Example Blockchain Application for Attribute Based Access Control</i>
+    </header>
+
+    <div id="body">
+      
+      <div class="form-group">
+        <label>Select Identity</label>
+        <p>
+          <select name="identity" ng-model="request_identity">
+            <option value="doctor1">Doctor 1</option>
+            <option value="nurse1">Nurse 1</option>
+            <option value="patient1">Patient 1</option>
+            <option value="patient2">Patient 2</option>
+            <option value="patient3">Patient 3</option>
+            <option value="patient4">Patient 4</option>
+            <option value="patient5">Patient 5</option>
+            <option value="data1">Data 1</option>
+            <option value="doctor2">Doctor 2</option>
+            <option value="nurse2">Nurse 2</option>
+            <option value="nurse3">Nurse 3</option>
+            <option value="emergency1">Emergency 1</option>
+          </select>
+        </p>
+
+        <label>Select Purpose</label>
+        <p>
+          <select name="purpose" ng-model="request_purpose">
+            <option value="emergency_services">Emergency services</option>
+            <option value="preventive_medicine">Preventive medicine</option>
+            <option value="medical_diagnosis">Medical diagnosis</option>
+            <option value="provision_of_care">Provision of care</option>
+            <option value="auditing">Auditing</option>
+            <option selected="selected" value="whatever">Whatever</option>
+          </select>
+        </p>
+
+      </div>
+      
+      <div class="form-group">
+        <label>Query All Electronic Healt Record Saved</label>
+        <p><input id="getAllState" type="submit" value="Query" class="btn btn-primary" ng-click="getAllState()"></p>
+      </div>
+ 
+      <table id="all_state" class="table" align="center">
+
+        <tr>
+          <th>Key</th>
+          <th>Last Request</th>
+          <th>From</th>
+          <th>Decision</th>
+          <th>Consent</th>
+        </tr>
+
+        <tr ng-repeat="ehr in all_state">
+          <td>{{ehr.Key}}</td>
+          <td>{{ehr.lastrequest}}</td>
+          <td>{{ehr.from}}</td>
+          <td>{{ehr.decision}}</td>
+          <td>{{ehr.consent}}</td>
+        </tr>
+      </table>
+      <div class="form-group">
+        <label>Query a Specific Electronic Health Record</label><br>
+        <h5 style="color:red;margin-bottom:2%" id="error_query">Error: The client does not have the rights to retrieve ehr related information</h5>
+        
+        Enter a Electronic Health Record ID: <input id="createName" class="form-control" type="text" placeholder="Ex: STRMND94M12C234L" ng-model="ehr_id">
+        <input id="viewEhr" type="submit" value="Query" class="btn btn-primary" ng-click="viewEhr()">
+      </div>
+
+      <table id="query_ehr" class="table" align="center">
+
+        <tr>
+          <th>Last Request</th>
+          <th>From</th>
+          <th>Decision</th>
+          <th>Consent</th>
+        </tr>
+
+        <tr>
+          <td>{{query_ehr.lastrequest}}</td>
+          <td>{{query_ehr.from}}</td>
+          <td>{{query_ehr.decision}}</td>
+          <td>{{query_ehr.consent}}</td>
+        </tr>
+      </table>
+
+      <div class="form-group">
+        <label>Create Electronic Healt Record</label>
+        <h5 style="color:green;margin-bottom:2%" id="success_create">Success! Tx ID: {{create_ehr}}</h5>
+        <h5 style="color:red;margin-bottom:2%" id="error_create">Error: The client does not have the rights to create a new ehr or the ehr already exists</h5>
+        <br>
+        Enter patient tax code: <input class="form-control" type="text" placeholder="Ex: BNCCRL85M12C143Y" ng-model="toCreate.id">        
+        <input id="createSubmit" type="submit" value="Create" class="btn btn-primary" ng-click="recordEhr()"> 
+      </div>
+
+      <div class="form-group">
+        <label>Update Consent on Electronic Health Record</label><br>
+        <h5 style="color:green;margin-bottom:2%" id="success_update_consent">Success! Tx ID: {{consent_to_update}}</h5>
+        <h5 style="color:red;margin-bottom:2%" id="error_update_consent">Error: The client does not have the rights to update the consent in the selected electronic health record</h5>
+        Enter patient tax code: <input class="form-control" name="toUpdate" placeholder="Ex: BNCCRL85M12C143Y" ng-model="consentToUpdate.id">
+        Enter patient consent: <input class="form-control" type="text" placeholder="Ex: true" ng-model="consentToUpdate.consent">
+        <input id="updateConsent" type="submit" value="UpdateConsent" class="btn btn-primary" ng-click="updateConsent()">
+      </div>
+
+      <div class="form-group">
+        <label>Ask for updating Electronic Health Record</label><br>
+        <h5 style="color:green;margin-bottom:2%" id="success_update">Success! Tx ID: {{ehr_to_update}}</h5>
+        <h5 style="color:red;margin-bottom:2%" id="error_update">Error: The client does not have the rights to update the selected electronic health record</h5>
+        Enter patient tax code: <input class="form-control" name="toUpdate" placeholder="Ex: BNCCRL85M12C143Y" ng-model="toUpdate.id">
+        <input id="updateEhr" type="submit" value="Update" class="btn btn-primary" ng-click="updateEhr()">
+      </div>
+
+    </div>
+  </body>
+    <!-- requiring the angular page -->
+    <script type="text/javascript" src="app.js"> </script>
+</html>

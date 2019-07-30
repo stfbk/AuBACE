@@ -1,0 +1,47 @@
+# Configuration file for a simple network.
+# - 1 orderer
+# - 3 organizations with 2 peers
+
+# Define the orderer organization
+OrdererOrgs:
+  - Name: Orderer
+    Domain: fbk.eu
+    Specs:
+      - Hostname: orderer
+
+# Define the business organizations that are part of our network
+PeerOrgs:
+  - Name: Org1
+    Domain: org1.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+  - Name: Org2
+    Domain: org2.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+  - Name: Org3
+    Domain: org3.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+
+# COMMENTS:
+# Here we define oderer and peers. This file defines our network topology and who is who within our network
+# Only peers from the same organization cas see each other, as well as talk and discover each other
+# If you need a communication between multiple organizations, you need to define anchor peers
+# The name of the organization is its identifier. The domain is what other parties use to communicate with peers and orderers
+# To define multiple orderers from different organizations, just copy, paste, and modify the whole 'OrdererOrgs' section
+# To define multiple orderers inside the same organization, just add more Hostname entries
+# The Count entry, inside Template, defines the number of peers within the organization
+# The Count entry, inside Users, defines the number of user added to the Admin
+# If you want to add another organization, just copy, paste, and modify one of the two examples above
+# If you use a certificate authority, you can dinamically add new users
