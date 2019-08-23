@@ -82,7 +82,7 @@ ca:
   # Name of this CA
   name: ca.org1.example.com
   # Key file (is only used to import a private key into BCCSP)
-  keyfile: db99ceb50dc15ddbe16627736ccf512af565fcef78caf0e4a4e44d278b8b8351_sk
+  keyfile: f572fb9712f1fbd2c342b8b771027260418ce8658c991524b815e9b95955cf1f_sk
   # Certificate file (default: ca-cert.pem)
   certfile: crypto-config/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem
   # Chain file

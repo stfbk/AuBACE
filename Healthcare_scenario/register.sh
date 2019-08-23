@@ -1,4 +1,4 @@
-NUM_PATIENTS=100
+NUM_PATIENTS=10
 NUM_DOCTORS=10
 
 echo "Registering Org1 admin identitiy"

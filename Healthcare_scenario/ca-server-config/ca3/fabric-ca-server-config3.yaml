@@ -82,7 +82,7 @@ ca:
   # Name of this CA
   name: ca.villabianca.nursing.it
   # Key file (is only used to import a private key into BCCSP)
-  keyfile: ace96e17a94fa75acbc6acd7c28c8dda2368b7eaa7ee0371429d3e1c79e0cb4b_sk
+  keyfile: 1755de7643f8f73b4331ef7870afa4f8b882da7071e70a0035ff81c42d572de3_sk
   # Certificate file (default: ca-cert.pem)
   certfile: crypto-config/peerOrganizations/villabianca.nursing.it/ca/ca.villabianca.nursing.it-cert.pem
   # Chain file

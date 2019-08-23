@@ -82,7 +82,7 @@ ca:
   # Name of this CA
   name: ca.sancamillo.hospital.it
   # Key file (is only used to import a private key into BCCSP)
-  keyfile: 3ae7f123ffbdca24bc5d6837db245d6e8658a55f266cfb422aba7246e612fcf9_sk
+  keyfile: 51a7ed084f0d58c69dd8616fe4085b96df1fa8efbc72a4ab8a88638870953dd6_sk
   # Certificate file (default: ca-cert.pem)
   certfile: crypto-config/peerOrganizations/sancamillo.hospital.it/ca/ca.sancamillo.hospital.it-cert.pem
   # Chain file
