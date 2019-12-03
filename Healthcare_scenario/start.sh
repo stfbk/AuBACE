@@ -1,162 +1,134 @@
-export FABRIC_CFG_PATH=${PWD}
-export CHANNEL_NAME="abac-channel"
-export DELAY=3
-export TIMEOUT=5
+# Obtain the OS and Architecture string that will be used to select the correct
+# native binaries for your platform, e.g., darwin-amd64 or linux-amd64
+OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
+# timeout duration - the duration the CLI should wait for a response from
+# another container before giving up
+CLI_TIMEOUT=10
+# default for delay between commands
+CLI_DELAY=3
+# channel name default
+CHANNEL_NAME="abac-channel"
+# use this as the default docker-compose yaml definition
+COMPOSE_FILE=docker-compose-cli.yaml
+#
+COMPOSE_FILE_COUCH=docker-compose-couch.yaml
+# kafka and zookeeper compose file
+COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
+# two additional etcd/raft orderers
+COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
+# certificate authorities compose file
+COMPOSE_FILE_CA=docker-compose-ca.yaml
+#
+# use golang as the default language for chaincode
+LANGUAGE=golang
+# default image tag
+IMAGETAG="latest"
+# default consensus type
+CONSENSUS_TYPE="solo"
 
-echo
-echo "STEP 1"
-echo
+# Versions of fabric known not to work with this release of first-network
+BLACKLISTED_VERSIONS="^1\.0\. ^1\.1\.0-preview ^1\.1\.0-alpha"
 
-# control that cryptogen tool is available and it is a recognized command
-which cryptogen
-    if [ "$?" -ne 0 ]; then
-        echo "cryptogen tool not found. exiting"
-        exit 1
+# Do some basic sanity checking to make sure that the appropriate versions of fabric
+# binaries/images are available.  In the future, additional checking for the presence
+# of go or other items could be added.
+function checkPrereqs() {
+  # Note, we check configtxlator externally because it does not require a config file, and peer in the
+  # docker image because of FAB-8551 that makes configtxlator return 'development version' in docker
+  LOCAL_VERSION=$(configtxlator version | sed -ne 's/ Version: //p')
+  DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-tools:$IMAGETAG peer version | sed -ne 's/ Version: //p' | head -1)
+
+  echo "LOCAL_VERSION=$LOCAL_VERSION"
+  echo "DOCKER_IMAGE_VERSION=$DOCKER_IMAGE_VERSION"
+
+  if [ "$LOCAL_VERSION" != "$DOCKER_IMAGE_VERSION" ]; then
+    echo "=================== WARNING ==================="
+    echo "  Local fabric binaries and docker images are  "
+    echo "  out of  sync. This may cause problems.       "
+    echo "==============================================="
+  fi
+
+  for UNSUPPORTED_VERSION in $BLACKLISTED_VERSIONS; do
+    echo "$LOCAL_VERSION" | grep -q $UNSUPPORTED_VERSION
+    if [ $? -eq 0 ]; then
+      echo "ERROR! Local Fabric binary version of $LOCAL_VERSION does not match this newer version of BYFN and is unsupported. Either move to a later version of Fabric or checkout an earlier version of fabric-samples."
+      exit 1
     fi
 
-# Delete the crypto-config folder if there is already one
-echo
-if [ -d "./crypto-config" ]; then
-    echo 'Delete existing crypto-config folder'
-    echo
-    rm -r ./crypto-config/
+    echo "$DOCKER_IMAGE_VERSION" | grep -q $UNSUPPORTED_VERSION
+    if [ $? -eq 0 ]; then
+      echo "ERROR! Fabric Docker image version of $DOCKER_IMAGE_VERSION does not match this newer version of BYFN and is unsupported. Either move to a later version of Fabric or checkout an earlier version of fabric-samples."
+      exit 1
+    fi
+  done
+}
+
+
+# Generate the needed certificates, the genesis block and start the network.
+function networkUp() {
+  checkPrereqs
+  # generate artifacts if they don't exist
+  if [ ! -d "crypto-config" ]; then
+    generateCerts
+    replacePrivateKey
+    generateChannelArtifacts
+  fi
+  COMPOSE_FILES="-f ${COMPOSE_FILE}"
+  if [ "${CERTIFICATE_AUTHORITIES}" == "true" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_CA}"
+    export BYFN_CA1_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org1.example.com/ca && ls *_sk)
+    export BYFN_CA2_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org2.example.com/ca && ls *_sk)
+    export BYFN_CA3_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org3.example.com/ca && ls *_sk)
+  fi
+  if [ "${CONSENSUS_TYPE}" == "kafka" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_KAFKA}"
+  elif [ "${CONSENSUS_TYPE}" == "etcdraft" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_RAFT2}"
+  fi
+  if [ "${IF_COUCHDB}" == "couchdb" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
+  fi
+  IMAGE_TAG=$IMAGETAG docker-compose ${COMPOSE_FILES} up -d 2>&1
+  docker ps -a
+  if [ $? -ne 0 ]; then
+    echo "ERROR !!!! Unable to start network"
+    exit 1
+  fi
+
+  if [ "$CONSENSUS_TYPE" == "kafka" ]; then
+    sleep 1
+    echo "Sleeping 10s to allow $CONSENSUS_TYPE cluster to complete booting"
+    sleep 9
+  fi
+
+  if [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
+    sleep 1
+    echo "Sleeping 15s to allow $CONSENSUS_TYPE cluster to complete booting"
+    sleep 14
+  fi
+
+
+}
+
+
+
+
+echo ".. Generate crypto material .."
+
+./abac_generate.sh
+
+echo ".. Start containers .."
+
+
+networkUp
+
+echo ".. Run script .."
+
+# now run the end to end script
+docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+if [ $? -ne 0 ]; then
+  echo "ERROR !!!! Test failed"
+  exit 1
 fi
 
-# Generate X.509 certificates
-echo 'Generate certificates from crypto-config.yaml file'
-    cryptogen generate --config=./crypto-config.yaml
-    if [ "$?" -ne 0 ]; then
-        echo "Failed to generate certificates..."
-        exit 1
-    fi
-echo
 
-echo
-echo
-echo 'STEP 2'
-echo
-# control that configtxgen tool is available and it is a recognized command
-    which configtxgen
-    if [ "$?" -ne 0 ]; then
-        echo "configtxgen tool not found. exiting"
-        exit 1
-    fi
-    echo
-
-# Delete the channel-artifacts folder if there is already one
-if [ -d "./channel-artifacts" ]; then
-    echo 'Delete existing channel artifacts folder'
-    echo
-    rm -r ./channel-artifacts/
-fi
-
-# Create channel-artifcts folder
-echo 'Create channel-artifacts folder'
-    mkdir ./channel-artifacts
-echo
-
-# Generate genesis block
-echo 'Generate genesis block'
-    configtxgen -profile ABACGenesis -outputBlock ./channel-artifacts/genesis.block
-    if [ "$?" -ne 0 ]; then
-    echo "Failed to generate orderer genesis block..."
-    exit 1
-    fi
-echo
-
-# Generate channel configuration transactions
-echo 'Generate channel configuration transaction'
-    configtxgen -profile ABACChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
-    if [ "$?" -ne 0 ]; then
-        echo "Failed to generate channel configuration transaction..."
-        exit 1
-    fi
-echo
-
-# Generate anchor peer of Org1
-echo 'Generate anchor peer for Org1'
-    configtxgen -profile ABACChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
-    if [ "$?" -ne 0 ]; then
-    echo "Failed to generate anchor peer update for Org1MSP..."
-    exit 1
-    fi
-echo
-
-# Generate anchor peer of Org2
-echo 'Generate anchor peer for Org2'
-    configtxgen -profile ABACChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
-    if [ "$?" -ne 0 ]; then
-    echo "Failed to generate anchor peer update for Org2MSP..."
-    exit 1
-    fi
-echo
-
-# Generate anchor peer of Org3
-echo 'Generate anchor peer for Org3'
-    configtxgen -profile ABACChannel -outputAnchorPeersUpdate ./channel-artifacts/Org3MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org3MSP
-    if [ "$?" -ne 0 ]; then
-    echo "Failed to generate anchor peer update for Org3MSP..."
-    exit 1
-    fi
-echo
-
-echo
-echo
-echo "STEP 3"
-echo
-echo "Modify docker-compose-template file to add the correct keys"
-./replace.sh
-
-
-
-echo
-echo
-echo "STEP 4"
-echo
-
-# Remove running docker containers
-    CONTAINER_IDS=$(docker ps -aq)
-    if [ -z "$CONTAINER_IDS" ]; then
-        echo 'No containers to delete'
-    else
-        echo 'Remove active docker containers'
-        docker rm -f $CONTAINER_IDS
-    fi
-echo
-
-# Start the new containers without prompting debug output
-echo 'Start new containers'
-    docker-compose -f docker-compose-cli.yaml up -d
-echo
-
-# Containers sanity check
-echo 'peer0.org1.example.com'
-    docker inspect peer0.org1.example.com | grep Running
-    docker inspect peer0.org1.example.com | grep Error
-echo
-echo 'peer1.org1.example.com'
-    docker inspect peer1.org1.example.com | grep Running
-    docker inspect peer1.org1.example.com | grep Error
-echo
-echo 'peer0.org2.example.com'
-    docker inspect peer0.org2.example.com | grep Running
-    docker inspect peer0.org2.example.com | grep Error
-echo
-echo 'peer1.org2.example.com'
-    docker inspect peer1.org2.example.com | grep Running
-    docker inspect peer1.org2.example.com | grep Error
-echo
-echo 'peer0.org3.example.com'
-    docker inspect peer0.org3.example.com | grep Running
-    docker inspect peer0.org3.example.com | grep Error
-echo
-echo 'peer1.org3.example.com'
-    docker inspect peer1.org3.example.com | grep Running
-    docker inspect peer1.org3.example.com | grep Error
-echo
-echo 'orderer.fbk.eu'
-    docker inspect orderer.fbk.eu | grep Running
-    docker inspect orderer.fbk.eu | grep Error
-echo
-
-docker logs -f cli
