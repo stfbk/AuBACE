@@ -47,7 +47,7 @@ func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 	// Retrieve request paramenters
 	function, args := stub.GetFunctionAndParameters()
 
-	logger.Debug("Chaincode Invoke method")
+	logger.Debug("Chaincode Invoke method on function: " + function")
 
 	switch function {
 	case "init":
@@ -139,7 +139,7 @@ func pol_eval(stub shim.ChaincodeStubInterface, action string, role string, cons
 
 	if policyCCResponse.Status != shim.OK {
 		logger.Error(" --- Policy Evaluation returns an Error --- ")
-		return "The client does not have the rights to write the selected electronic health record"
+		return "Policy evaluation failed"
 	}
 	
 	logger.Debug("---------      OK, CHAINCODE INVOKED CORRECTLY        ----------")
@@ -348,7 +348,7 @@ func (s *SmartContract) updateConsent(stub shim.ChaincodeStubInterface, args []s
 
 	logger.Debug("Inside updateConsent function")
 
-	res, role := arg_eval (stub, args, 3, "addMedicalRecord") //[0] Fiscal_code, [1] Consent, [2] Purpose
+	res, role := arg_eval (stub, args, 3, "updateConsent") //[0] Fiscal_code, [1] Consent, [2] Purpose
 
 	if res != "ok"{
 		return shim.Error(res)
@@ -402,9 +402,9 @@ func (s *SmartContract) updateConsent(stub shim.ChaincodeStubInterface, args []s
 
 func (s *SmartContract) updateConsentNoEval(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
-	logger.Debug("Inside updateConsent function")
+	logger.Debug("Inside updateConsentNoEval function")
 
-	res, _ := arg_eval (stub, args, 2, "addMedicalRecord") //[0] Fiscal_code, [1] Consent
+	res, _ := arg_eval (stub, args, 2, "updateConsentNoEval") //[0] Fiscal_code, [1] Consent
 
 	if res != "ok"{
 		return shim.Error(res)
@@ -726,9 +726,9 @@ func main() {
 
 func contains(name string, array []string) bool {
 	i := 0
-	logger.Debug("Lunghezza dell'array: " + strconv.Itoa(len(array)))
+	logger.Debug("Array length: " + strconv.Itoa(len(array)))
 	for i < len(array) {
-		logger.Debug("Name: " + name + " - elemento: " + array[i])
+		logger.Debug("Name: " + name + " - element: " + array[i])
 		if array[i] == name {
 			logger.Debug("Return true")
 			return true
