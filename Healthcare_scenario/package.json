@@ -1,6 +1,6 @@
 {
   "name": "healthcare_scenario",
-  "version": "1.0.0",
+  "version": "1.4.4",
   "description": "AUBACE use case",
   "main": "controller.js",
   "scripts": {
@@ -22,8 +22,8 @@
     "dateformat": "^3.0.3",
     "express": "^4.17.1",
     "extend": "^3.0.2",
-    "fabric-ca-client": "^1.1.0",
-    "fabric-client": "1.1.x",
+    "fabric-ca-client": "1.4.4",
+    "fabric-client": "1.4.4",
     "grpc": "^1.10.1",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.13",

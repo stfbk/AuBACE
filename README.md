@@ -7,9 +7,41 @@ Additional information can be found at https://sites.google.com/fbk.eu/aubace.
 ## Usage
 To run our Healthcare use case, use the launcher *start.sh* and follow the instructions; to stop it, use *stop.sh* (Linux) or *stop-win.bat* (Windows). A testing dashboard is available at *localhost:8000*.
 
-### Requirements
-1.	[Docker](https://docs.docker.com) (remember to issue `sudo usermod -a -G docker $USER` and logout to apply changes);
-[cURL](http://curl.haxx.se/download.html); [goLang](https://golang.org/dl/) (follow also the guide to reach the *gopath* folder via the PATH environment variable); [node v. 8.16](https://nodejs.org/dist/latest-v8.x). In addition, *software-properties-common*, *gcc*, *g++* and *make* with, for instance, `sudo apt install python-software-properties gcc g++ make`.
-2. Install [Hyperledger Fabric Binaries and docker images v.1.1.0](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html) with `curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.1.0 1.1.0 0.4.6`. Verify that docker-compose is installed and add the *bin* subfolder to the PATH environment variable: open \/.profile and add `export PATH=<path to download location>/bin:$PATH`. The ''path to download location'' is the path to the ''fabric-samples'' directory that the cUrl command downloaded. Finally issue `source ~/.profile`. The YAML files are configured to run the docker images tagged as *latest*: if Hyperledger containers are updated, modify the YAML files to select v.1.1.0 images (e.g., *hyperledger/fabric-ca:x86_64-1.1.0* instead of *hyperledger/fabric-ca*). 
-3.	Download (or clone) the Healthcare\_scenario.
-4.	Run npm install in the Healthcare\_scenario folder.
+## Requirements
+
+** [docker](https://docs.docker.com)
+** [cURL](http://curl.haxx.se/download.html)
+** [goLang](https://golang.org/dl/) (follow also the guide to reach the *gopath* folder via the PATH environment variable)
+** [node v. 8.16](https://nodejs.org/dist/latest-v8.x)
+** *software-properties-common*, *gcc*, *g++* and *make*.
+
+## Installation (linux)
+
+1.	Install [docker](https://docs.docker.com)
+
+```shell
+sudo apt install python-software-properties gcc g++ make docker.io docker-compose nodejs golang
+sudo usermod -a -G docker $USER
+``` 
+Logout to apply changes.
+
+
+
+2. Install [Hyperledger Fabric Binaries and docker images v.1.4.4](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html)
+```shell
+curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.4.4 1.4.4 0.4.8
+````
+
+Add the *bin* subfolder to the PATH environment variable: open \/.profile and add `export PATH=<path to download location>/bin:$PATH`. The ''path to download location'' is the path to the ''fabric-samples'' directory that the cUrl command downloaded.
+
+```shell
+source ~/.profile
+```
+or log out and back in.
+
+The YAML files are configured to run the docker images tagged as *latest*: if Hyperledger containers are updated, modify the YAML files to select v.1.4.4 images (e.g., *hyperledger/fabric-ca:x86_64-1.4.4* instead of *hyperledger/fabric-ca*). 
+
+3.	Download (or clone) the Healthcare\_scenario in this repo.
+
+4.	`npm install` in your Healthcare\_scenario folder.
+
