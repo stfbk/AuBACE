@@ -216,6 +216,7 @@ CLI_TIMEOUT=10
 CLI_DELAY=3
 # channel name defaults
 SYS_CHANNEL="sys-channel"
+
 CHANNEL_NAME="abac-channel"
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE=docker-compose-cli.yaml
@@ -237,8 +238,8 @@ CONSENSUS_TYPE="solo"
 
 
 # remove previous crypto material and config transactions
-rm -fr channel-artifacts/*
-rm -fr crypto-config/*
+#rm -fr channel-artifacts/*
+#rm -fr crypto-config/*
 
 printf "Previous crypto material and network configuration files removed - generating anew...\n"
 
