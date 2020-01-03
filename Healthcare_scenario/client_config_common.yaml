@@ -1,5 +1,5 @@
 name: "health"
-version: "1.0"
+version: "1.4.4
 
 channels:
   abac-channel:
@@ -79,7 +79,7 @@ orderers:
       ssl-target-name-override: orderer.fbk.eu
       grpc-max-send-message-length: 4194304
     tlsCACerts:
-      path: test/fixtures/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tlscacerts/example.com-cert.pem
+      path: test/fixtures/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.fbk.eu/tlscacerts/example.com-cert.pem
 
 peers:
   peer0.org1.example.com:
@@ -114,7 +114,7 @@ certificateAuthorities:
     registrar:
       - enrollId: admin
         enrollSecret: adminpw
-    caName: caorg1
+    caName: ca-org1
 
   ca-org2:
     url: https://localhost:8054
@@ -125,7 +125,7 @@ certificateAuthorities:
     registrar:
       - enrollId: admin
         enrollSecret: adminpw
-    caName: caorg2
+    caName: ca-org2
 
   ca-org3:
     url: https://localhost:9054
@@ -136,4 +136,4 @@ certificateAuthorities:
     registrar:
       - enrollId: admin
         enrollSecret: adminpw
-    caName: caorg3
+    caName: ca-org3

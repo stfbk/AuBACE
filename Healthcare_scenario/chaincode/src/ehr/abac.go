@@ -36,55 +36,55 @@ type policies struct {
 }
 
 // Init function, which is empty for us
-func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) peer.Response {
+func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) peer.Response {
 	logger.SetLevel(shim.LogDebug)
 	return shim.Success(nil)
 }
 
 // Invoke function needed to decide what is the request
-func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) peer.Response {
 
 	// Retrieve request paramenters
-	function, args := stub.GetFunctionAndParameters()
+	function, args := APIstub.GetFunctionAndParameters()
 
-	logger.Debug("Chaincode Invoke method on function: " + function")
+	logger.Debug("Chaincode Invoke method on function: " + function)
 
 	switch function {
 	case "init":
-		return s.Init(stub)
+		return s.Init(APIstub)
 	case "initLedger":
-		return s.initLedger(stub, args)
+		return s.initLedger(APIstub, args)
 	case "viewMedicalRecord":
-		return s.viewMedicalRecord(stub, args)
+		return s.viewMedicalRecord(APIstub, args)
 	case "viewMedicalRecordNoEval":
-		return s.viewMedicalRecordNoEval(stub, args)
+		return s.viewMedicalRecordNoEval(APIstub, args)
 	case "updateMedicalRecord":
-		return s.updateMedicalRecord(stub, args)
+		return s.updateMedicalRecord(APIstub, args)
 	case "updateMedicalRecordNoEval":
-		return s.updateMedicalRecordNoEval(stub, args)
+		return s.updateMedicalRecordNoEval(APIstub, args)
 	case "getGlobalState":
-		return s.getGlobalState(stub, args)
+		return s.getGlobalState(APIstub, args)
 	case "getGlobalStateNoEval":
-		return s.getGlobalStateNoEval(stub, args)
+		return s.getGlobalStateNoEval(APIstub, args)
 	case "addMedicalRecord":
-		return s.addMedicalRecord(stub, args)
+		return s.addMedicalRecord(APIstub, args)
 	case "addMedicalRecordNoEval":
-		return s.addMedicalRecordNoEval(stub, args)
+		return s.addMedicalRecordNoEval(APIstub, args)
 	case "updateConsent":
-		return s.updateConsent(stub, args)
+		return s.updateConsent(APIstub, args)
 	case "updateConsentNoEval":
-		return s.updateConsentNoEval(stub, args)
+		return s.updateConsentNoEval(APIstub, args)
 	case "trackMedicalRecord":
-		return s.trackMedicalRecord(stub, args)
+		return s.trackMedicalRecord(APIstub, args)
 	case "trackMedicalRecordNoEval":
-		return s.trackMedicalRecordNoEval(stub, args)
+		return s.trackMedicalRecordNoEval(APIstub, args)
 	}
 
 	return shim.Error("Invalid request")
 }
 
 // The initLedger method is used to insert some predefined medical_record during network creation
-func (s *SmartContract) initLedger(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	if len(args) != 0 {
 		return shim.Error("Error: invalid number of arguments for initLedger - expected 0")
@@ -103,7 +103,7 @@ func (s *SmartContract) initLedger(stub shim.ChaincodeStubInterface, args []stri
 	i := 0
 	for i < len(ehr) {
 		ehrAsBytes, _ := json.Marshal(ehr[i])
-		stub.PutState(ledgerkeys[i], ehrAsBytes)
+		APIstub.PutState(ledgerkeys[i], ehrAsBytes)
 		fmt.Println("Added", ehr[i])
 		i = i + 1
 	}
@@ -111,13 +111,13 @@ func (s *SmartContract) initLedger(stub shim.ChaincodeStubInterface, args []stri
 	return shim.Success(nil)
 }
 
-func arg_eval(stub shim.ChaincodeStubInterface, args []string, arg_num int, func_name string) (string, string){
+func arg_eval(APIstub shim.ChaincodeStubInterface, args []string, arg_num int, func_name string) (string, string){
 
 	if len(args) != arg_num {
 		return "Error: invalid number of arguments for "+ func_name +" - expected "+ strconv.Itoa(arg_num), ""
 	}
 	
-	role, ok, err := cid.GetAttributeValue(stub, "role")
+	role, ok, err := cid.GetAttributeValue(APIstub, "role")
 	
 	if err != nil {
 		return "There was an error while reading the role attribute", ""
@@ -132,10 +132,10 @@ func arg_eval(stub shim.ChaincodeStubInterface, args []string, arg_num int, func
 	return "ok", role
 }
 
-func pol_eval(stub shim.ChaincodeStubInterface, action string, role string, consent string, purpose string) string{
+func pol_eval(APIstub shim.ChaincodeStubInterface, action string, role string, consent string, purpose string) string{
 	
 	chainCodeArgs := util.ToChaincodeArgs("applyPolicy", action, role, consent, purpose)
-	policyCCResponse := stub.InvokeChaincode("policy_chaincode", chainCodeArgs, "abac-channel")
+	policyCCResponse := APIstub.InvokeChaincode("policy_chaincode", chainCodeArgs, "abac-channel")
 
 	if policyCCResponse.Status != shim.OK {
 		logger.Error(" --- Policy Evaluation returns an Error --- ")
@@ -148,28 +148,28 @@ func pol_eval(stub shim.ChaincodeStubInterface, action string, role string, cons
 }
 	
 // The addMedicalRecord method is used to insert a medical_record to the ledger
-func (s *SmartContract) addMedicalRecord(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) addMedicalRecord(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Entering addMedicalRecord")
 
-	res, role := arg_eval (stub, args, 2, "addMedicalRecord") //[0] Fiscal_code, [1] Purpose
+	res, role := arg_eval (APIstub, args, 2, "addMedicalRecord") //[0] Fiscal_code, [1] Purpose
 	
 	if res != "ok"{
 		return shim.Error(res)
 	}
 
-	if present, _ := stub.GetState(args[0]); present != nil {
+	if present, _ := APIstub.GetState(args[0]); present != nil {
 		return shim.Error("The specified ehr already exist. You can only request its update")
 	}
 
-	if res = pol_eval (stub, "Write", role, "false", args[1]); res != "ok" {
+	if res = pol_eval (APIstub, "Write", role, "false", args[1]); res != "ok" {
 		return shim.Error(res)
 	}
 	
 	var ehr = EHR{LastRequest: "", From: "", Decision: "", Consent: false}
 	ehrAsBytes, _ := json.Marshal(ehr)
 	
-	err := stub.PutState(args[0], ehrAsBytes)
+	err := APIstub.PutState(args[0], ehrAsBytes)
 	
 	if err != nil {
 		return shim.Error("Failed to insert a new ehr " + args[0])
@@ -178,11 +178,11 @@ func (s *SmartContract) addMedicalRecord(stub shim.ChaincodeStubInterface, args 
 	return shim.Success(nil)
 }
 
-func (s *SmartContract) addMedicalRecordNoEval(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) addMedicalRecordNoEval(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Entering addMedicalRecordNoEval")
 
-	res, role := arg_eval (stub, args, 1, "addMedicalRecordNoEval") //[0] Fiscal_code
+	res, role := arg_eval (APIstub, args, 1, "addMedicalRecordNoEval") //[0] Fiscal_code
 	
 	if res != "ok"{
 		return shim.Error(res)
@@ -190,14 +190,14 @@ func (s *SmartContract) addMedicalRecordNoEval(stub shim.ChaincodeStubInterface,
 	
 	logger.Debug("The attribute role has a value of " + role)
 
-	if present, _ := stub.GetState(args[0]); present != nil {
+	if present, _ := APIstub.GetState(args[0]); present != nil {
 		return shim.Error("The specified ehr already exist. You can only request its update")
 	}
 
 	var ehr = EHR{LastRequest: "", From: "", Decision: "", Consent: false}
 	ehrAsBytes, _ := json.Marshal(ehr)
 	
-	err := stub.PutState(args[0], ehrAsBytes)
+	err := APIstub.PutState(args[0], ehrAsBytes)
 	
 	if err != nil {
 		return shim.Error("Failed to insert a new ehr " + args[0])
@@ -209,18 +209,18 @@ func (s *SmartContract) addMedicalRecordNoEval(stub shim.ChaincodeStubInterface,
 /*
 	The viewMedicalRecord method is used to retrieve and display an EHR
 */
-func (s *SmartContract) viewMedicalRecord(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) viewMedicalRecord(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Entering viewMedicalRecord")
 
-	res, role := arg_eval (stub, args, 2, "viewMedicalRecord") //[0] Fiscal_code, [1] Purpose
+	res, role := arg_eval (APIstub, args, 2, "viewMedicalRecord") //[0] Fiscal_code, [1] Purpose
 	
 	if res != "ok"{
 		return shim.Error(res)
 	}
 	
 	if role == "Patient" {
-		cf, okCF, errCF := cid.GetAttributeValue(stub, "cf")
+		cf, okCF, errCF := cid.GetAttributeValue(APIstub, "cf")
 		if errCF != nil {
 			return shim.Error("There was an error while reading cf attribute")
 		}
@@ -236,7 +236,7 @@ func (s *SmartContract) viewMedicalRecord(stub shim.ChaincodeStubInterface, args
 	}
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("The requested electronic health record does not exist")
 	}
@@ -245,7 +245,7 @@ func (s *SmartContract) viewMedicalRecord(stub shim.ChaincodeStubInterface, args
 	ehr := EHR{}
 	json.Unmarshal(ehrAsBytes, &ehr)
 	
-	if res = pol_eval (stub, "Read", role, strconv.FormatBool(ehr.Consent), args[1]); res != "ok" {
+	if res = pol_eval (APIstub, "Read", role, strconv.FormatBool(ehr.Consent), args[1]); res != "ok" {
 		return shim.Error(res)
 	}
 
@@ -253,18 +253,18 @@ func (s *SmartContract) viewMedicalRecord(stub shim.ChaincodeStubInterface, args
 	return shim.Success(ehrAsBytes)
 }
 
-func (s *SmartContract) viewMedicalRecordNoEval(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) viewMedicalRecordNoEval(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Entering viewMedicalRecordNoEval")
 
-	res, role := arg_eval (stub, args, 1, "viewMedicalRecordNoEval") //[0] Fiscal_code
+	res, role := arg_eval (APIstub, args, 1, "viewMedicalRecordNoEval") //[0] Fiscal_code
 	
 	if res != "ok"{
 		return shim.Error(res)
 	}
 	
 	if role == "Patient" {
-		cf, okCF, errCF := cid.GetAttributeValue(stub, "cf")
+		cf, okCF, errCF := cid.GetAttributeValue(APIstub, "cf")
 		if errCF != nil {
 			return shim.Error("There was an error while reading cf attribute")
 		}
@@ -280,7 +280,7 @@ func (s *SmartContract) viewMedicalRecordNoEval(stub shim.ChaincodeStubInterface
 	}
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("The requested electronic health record does not exist")
 	}
@@ -295,18 +295,18 @@ func (s *SmartContract) viewMedicalRecordNoEval(stub shim.ChaincodeStubInterface
 /*
 	The updateMedicalRecord method is used to update the ledger as a consequence of a read/write function
 */
-func (s *SmartContract) updateMedicalRecord(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) updateMedicalRecord(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Inside updateMedicalRecord function")
 
-	res, role := arg_eval (stub, args, 2, "updateMedicalRecord") //[0] Fiscal_code, [1] Purpose
+	res, role := arg_eval (APIstub, args, 2, "updateMedicalRecord") //[0] Fiscal_code, [1] Purpose
 	
 	if res != "ok"{
 		return shim.Error(res)
 	}
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("The requested electronic health record does not exist, you cannot update it")
 	}
@@ -315,25 +315,25 @@ func (s *SmartContract) updateMedicalRecord(stub shim.ChaincodeStubInterface, ar
 	ehr := EHR{}
 	json.Unmarshal(ehrAsBytes, &ehr)
 
-	if res = pol_eval (stub, "Update", role, strconv.FormatBool(ehr.Consent), args[1]); res != "ok" {
+	if res = pol_eval (APIstub, "Update", role, strconv.FormatBool(ehr.Consent), args[1]); res != "ok" {
 		return shim.Error(res)
 	}
 
 	return shim.Success(ehrAsBytes)
 }
 
-func (s *SmartContract) updateMedicalRecordNoEval(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) updateMedicalRecordNoEval(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Inside updateMedicalRecordNoEval function")
 
-	res, _ := arg_eval (stub, args, 1, "updateMedicalRecordNoEval") //[0] Fiscal_code
+	res, _ := arg_eval (APIstub, args, 1, "updateMedicalRecordNoEval") //[0] Fiscal_code
 	
 	if res != "ok"{
 		return shim.Error(res)
 	}
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("The requested electronic health record does not exist, you cannot update it")
 	}
@@ -344,17 +344,17 @@ func (s *SmartContract) updateMedicalRecordNoEval(stub shim.ChaincodeStubInterfa
 /*
 	The updateConsent method is used to update the ledger as a consequence of a read/write function
 */
-func (s *SmartContract) updateConsent(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) updateConsent(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Inside updateConsent function")
 
-	res, role := arg_eval (stub, args, 3, "updateConsent") //[0] Fiscal_code, [1] Consent, [2] Purpose
+	res, role := arg_eval (APIstub, args, 3, "updateConsent") //[0] Fiscal_code, [1] Consent, [2] Purpose
 
 	if res != "ok"{
 		return shim.Error(res)
 	}
 
-	cf, okCF, errCF := cid.GetAttributeValue(stub, "cf")
+	cf, okCF, errCF := cid.GetAttributeValue(APIstub, "cf")
 	if errCF != nil {
 		return shim.Error("There was an error while reading cf attribute")
 	}
@@ -370,7 +370,7 @@ func (s *SmartContract) updateConsent(stub shim.ChaincodeStubInterface, args []s
 	}
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("The requested electronic health record does not exist, you cannot update its consent")
 	}
@@ -384,7 +384,7 @@ func (s *SmartContract) updateConsent(stub shim.ChaincodeStubInterface, args []s
 		return shim.Error("consent is not a boolean")
 	}
 
-	if res = pol_eval (stub, "UpdateConsent", role, strconv.FormatBool(ehr.Consent), args[2]); res != "ok" {
+	if res = pol_eval (APIstub, "UpdateConsent", role, strconv.FormatBool(ehr.Consent), args[2]); res != "ok" {
 		return shim.Error(res)
 	}
 
@@ -392,7 +392,7 @@ func (s *SmartContract) updateConsent(stub shim.ChaincodeStubInterface, args []s
 	ehr.Consent = consent
 
 	ehrAsBytes, _ = json.Marshal(ehr)
-	err = stub.PutState(args[0], ehrAsBytes)
+	err = APIstub.PutState(args[0], ehrAsBytes)
 	if err != nil {
 		return shim.Error("Could not update the selected electronic health record")
 	}
@@ -400,17 +400,17 @@ func (s *SmartContract) updateConsent(stub shim.ChaincodeStubInterface, args []s
 	return shim.Success(nil)
 }
 
-func (s *SmartContract) updateConsentNoEval(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) updateConsentNoEval(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Inside updateConsentNoEval function")
 
-	res, _ := arg_eval (stub, args, 2, "updateConsentNoEval") //[0] Fiscal_code, [1] Consent
+	res, _ := arg_eval (APIstub, args, 2, "updateConsentNoEval") //[0] Fiscal_code, [1] Consent
 
 	if res != "ok"{
 		return shim.Error(res)
 	}
 	
-	cf, okCF, errCF := cid.GetAttributeValue(stub, "cf")
+	cf, okCF, errCF := cid.GetAttributeValue(APIstub, "cf")
 	if errCF != nil {
 		return shim.Error("There was an error while reading cf attribute")
 	}
@@ -426,7 +426,7 @@ func (s *SmartContract) updateConsentNoEval(stub shim.ChaincodeStubInterface, ar
 	//}
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("The requested electronic health record does not exist, you cannot update its consent")
 	}
@@ -444,7 +444,7 @@ func (s *SmartContract) updateConsentNoEval(stub shim.ChaincodeStubInterface, ar
 	ehr.Consent = consent
 
 	ehrAsBytes, _ = json.Marshal(ehr)
-	err = stub.PutState(args[0], ehrAsBytes)
+	err = APIstub.PutState(args[0], ehrAsBytes)
 	if err != nil {
 		return shim.Error("Could not update the selected electronic health record")
 	}
@@ -454,7 +454,7 @@ func (s *SmartContract) updateConsentNoEval(stub shim.ChaincodeStubInterface, ar
 /*
 	The trackMedicalRecord method is used to update the ledger as a consequence of a read/write function
 */
-func (s *SmartContract) trackMedicalRecord(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) trackMedicalRecord(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Inside trackMedicalRecord function")
 
@@ -463,7 +463,7 @@ func (s *SmartContract) trackMedicalRecord(stub shim.ChaincodeStubInterface, arg
 	}
 
 	// get the attribute role to check if the request is compliant with the policy
-	role, ok, err := cid.GetAttributeValue(stub, "role")
+	role, ok, err := cid.GetAttributeValue(APIstub, "role")
 	if err != nil {
 		return shim.Error("There was an error while reading role attribute")
 	}
@@ -473,7 +473,7 @@ func (s *SmartContract) trackMedicalRecord(stub shim.ChaincodeStubInterface, arg
 	logger.Debug("The attribute role has a value of " + role)
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("The requested electronic health record does not exist, you cannot update it")
 	}
@@ -483,7 +483,7 @@ func (s *SmartContract) trackMedicalRecord(stub shim.ChaincodeStubInterface, arg
 	json.Unmarshal(ehrAsBytes, &ehr)
 
 	chainCodeArgs := util.ToChaincodeArgs("applyPolicy", args[2], role, strconv.FormatBool(ehr.Consent), args[4])
-	policyCCResponse := stub.InvokeChaincode("policy_chaincode", chainCodeArgs, "abac-channel")
+	policyCCResponse := APIstub.InvokeChaincode("policy_chaincode", chainCodeArgs, "abac-channel")
 
 	ehr.LastRequest = args[3]
 	ehr.From = args[1]
@@ -492,7 +492,7 @@ func (s *SmartContract) trackMedicalRecord(stub shim.ChaincodeStubInterface, arg
 		logger.Error("---------        ACTION NOT ALLOWED     --------------")
 		ehr.Decision = "Disallowed"
 		ehrAsBytes, _ = json.Marshal(ehr)
-		err = stub.PutState(args[0], ehrAsBytes)
+		err = APIstub.PutState(args[0], ehrAsBytes)
 		if err != nil {
 			return shim.Error("Could not update the selected electronic health record")
 		}
@@ -502,7 +502,7 @@ func (s *SmartContract) trackMedicalRecord(stub shim.ChaincodeStubInterface, arg
 
 	ehr.Decision = "Allowed"
 	ehrAsBytes, _ = json.Marshal(ehr)
-	err = stub.PutState(args[0], ehrAsBytes)
+	err = APIstub.PutState(args[0], ehrAsBytes)
 	if err != nil {
 		return shim.Error("Could not update the selected electronic health record")
 	}
@@ -511,7 +511,7 @@ func (s *SmartContract) trackMedicalRecord(stub shim.ChaincodeStubInterface, arg
 }
 
 
-func (s *SmartContract) trackMedicalRecordNoEval(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) trackMedicalRecordNoEval(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.SetLevel(shim.LogDebug)
 	logger.Debug("NoEval: Inside trackMedicalRecord function")
@@ -521,7 +521,7 @@ func (s *SmartContract) trackMedicalRecordNoEval(stub shim.ChaincodeStubInterfac
 	}
 
 	// retrieve the requested electronic health record
-	ehrAsBytes, _ := stub.GetState(args[0])
+	ehrAsBytes, _ := APIstub.GetState(args[0])
 	if ehrAsBytes == nil {
 		return shim.Error("NoEval: The requested electronic health record does not exist, you cannot update it")
 	}
@@ -535,7 +535,7 @@ func (s *SmartContract) trackMedicalRecordNoEval(stub shim.ChaincodeStubInterfac
 
 	ehr.Decision = "Allowed"
 	ehrAsBytes, _ = json.Marshal(ehr)
-	err := stub.PutState(args[0], ehrAsBytes)
+	err := APIstub.PutState(args[0], ehrAsBytes)
 	if err != nil {
 		return shim.Error("NoEval: Could not update the selected electronic health record")
 	}
@@ -546,11 +546,11 @@ func (s *SmartContract) trackMedicalRecordNoEval(stub shim.ChaincodeStubInterfac
 /*
 	The getGlobalState method is used to query the state of all assets saved
 */
-func (s *SmartContract) getGlobalState(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) getGlobalState(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Entering getGlobalState")
 
-	res, role := arg_eval (stub, args, 1, "getGlobalState") // [0] Purpose
+	res, role := arg_eval (APIstub, args, 1, "getGlobalState") // [0] Purpose
 
 	if res != "ok"{
 		return shim.Error(res)
@@ -565,7 +565,7 @@ func (s *SmartContract) getGlobalState(stub shim.ChaincodeStubInterface, args []
 	startKey := "0000000000000000"
 	endKey := "ZZZZZZZZZZZZZZZZ"
 
-	resultsIterator, err := stub.GetStateByRange(startKey, endKey)
+	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 	if err != nil {
 		logger.Debug("Get State By Range - there has been an error")
 		logger.Debug(err)
@@ -606,7 +606,7 @@ func (s *SmartContract) getGlobalState(stub shim.ChaincodeStubInterface, args []
 		ehr := EHR{}
 		json.Unmarshal(queryResponse.Value, &ehr)
 
-		if res = pol_eval (stub, "Read", role, strconv.FormatBool(ehr.Consent), args[0]); res == "ok" {
+		if res = pol_eval (APIstub, "Read", role, strconv.FormatBool(ehr.Consent), args[0]); res == "ok" {
 			logger.Debug("OK, insert the current ehr in the list")
 			if len(queryResponse.Key) == 16 {
 				buffer.WriteString("{\"Key\":")
@@ -632,11 +632,11 @@ func (s *SmartContract) getGlobalState(stub shim.ChaincodeStubInterface, args []
 	return shim.Success(buffer.Bytes())
 }
 
-func (s *SmartContract) getGlobalStateNoEval(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *SmartContract) getGlobalStateNoEval(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	logger.Debug("Entering getGlobalStateNoEval")
 
-	res, role := arg_eval (stub, args, 0, "getGlobalStateNoEval")
+	res, role := arg_eval (APIstub, args, 0, "getGlobalStateNoEval")
 
 	if res != "ok"{
 		return shim.Error(res)
@@ -651,7 +651,7 @@ func (s *SmartContract) getGlobalStateNoEval(stub shim.ChaincodeStubInterface, a
 	startKey := "0000000000000000"
 	endKey := "ZZZZZZZZZZZZZZZZ"
 
-	resultsIterator, err := stub.GetStateByRange(startKey, endKey)
+	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 	if err != nil {
 		logger.Debug("NoEval: Get State By Range - there has been an error")
 		logger.Debug(err)

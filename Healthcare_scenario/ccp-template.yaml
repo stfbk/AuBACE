@@ -1,6 +1,6 @@
 ---
 name: aubace-network-org${ORG}
-version: 1.0.0
+version: 1.4.4
 client:
   organization: Org${ORG}
   connection:

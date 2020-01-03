@@ -24,27 +24,27 @@ type policies struct {
 }
 
 // Init function, which is empty for us
-func (s *Policy) Init(stub shim.ChaincodeStubInterface) peer.Response {
+func (s *Policy) Init(APIstub shim.ChaincodeStubInterface) peer.Response {
 	return shim.Success(nil)
 }
 
 // Invoke function needed to decide what is the request
-func (s *Policy) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+func (s *Policy) Invoke(APIstub shim.ChaincodeStubInterface) peer.Response {
 
 	policyLogger.SetLevel(shim.LogDebug)
 	// Retrieve request paramenters
-	function, args := stub.GetFunctionAndParameters()
+	function, args := APIstub.GetFunctionAndParameters()
 
 	policyLogger.Debug("Chaincode Invoke method")
 
 	switch function {
 	case "init":
-		return s.Init(stub)
+		return s.Init(APIstub)
 	case "initLedger":
 		//return shim.Success(nil)
-		return s.initLedger(stub, args)
+		return s.initLedger(APIstub, args)
 	case "applyPolicy":
-		return s.applyPolicy(stub, args)
+		return s.applyPolicy(APIstub, args)
 		/*case "viewPolicy":
 			return s.viewPolicy(stub, args)
 		case "updatePolicy":
@@ -61,7 +61,7 @@ func (s *Policy) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 /*
 	The initLedger method is used to insert some predefined policies during network creation
 */
-func (s *Policy) initLedger(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *Policy) initLedger(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	policyLogger.SetLevel(shim.LogDebug)
 
@@ -86,7 +86,7 @@ func (s *Policy) initLedger(stub shim.ChaincodeStubInterface, args []string) pee
 		policyAsBytes, _ := json.Marshal(policy[i])
 		key := "policy" + strconv.Itoa(i)
 		fmt.Println("Added: ", key, policy[i])
-		stub.PutState(key, policyAsBytes)
+		APIstub.PutState(key, policyAsBytes)
 		i = i + 1
 
 		policyAfter := policies{}
@@ -101,13 +101,13 @@ func (s *Policy) initLedger(stub shim.ChaincodeStubInterface, args []string) pee
 /*
 	The applyPolicy method is used to evaluate a request against all policies
 */
-func (s *Policy) applyPolicy(stub shim.ChaincodeStubInterface, args []string) peer.Response {
+func (s *Policy) applyPolicy(APIstub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	policyLogger.SetLevel(shim.LogDebug)
 	policyLogger.Debug("Entering applyPolicy")
 
 	// get the attribute role to check if the request is compliant with the policy
-	/*role, ok, err := cid.GetAttributeValue(stub, "role")
+	/*role, ok, err := cid.GetAttributeValue(APIstub, "role")
 	if err != nil {
 		return shim.Error("There was an error while reading role attribute")
 	}
@@ -126,7 +126,7 @@ func (s *Policy) applyPolicy(stub shim.ChaincodeStubInterface, args []string) pe
 
 	// applyPolicies gets as arguments the stub, the action, the role attribute and the consent value of the ehr
 	policyLogger.Debug("Checking the policies")
-	allowed := applyPolicies(stub, args[0], args[1], args[2], args[3])
+	allowed := applyPolicies(APIstub, args[0], args[1], args[2], args[3])
 
 	// throw a specific error if the client is not allowed to perform the requested operation on the selected ehr
 	policyLogger.Debug("At the end, allowed: " + strconv.FormatBool(allowed))
@@ -136,7 +136,7 @@ func (s *Policy) applyPolicy(stub shim.ChaincodeStubInterface, args []string) pe
 
 	//if this is executed, everythig has gone well
 	/*ehrAsBytes, _ := json.Marshal(ehr)
-	err = stub.PutState(args[0], ehrAsBytes)
+	err = APIstub.PutState(args[0], ehrAsBytes)
 	if err != nil {
 		return shim.Error("Failed to insert a new ehr " + args[0])
 	}*/
@@ -190,14 +190,14 @@ func boolConsentContained(name bool, array []bool) bool {
 	return toModify
 }*/
 
-func applyPolicies(stub shim.ChaincodeStubInterface, action string, role string, consent string, purpose string) bool {
+func applyPolicies(APIstub shim.ChaincodeStubInterface, action string, role string, consent string, purpose string) bool {
 
 	var results []bool
 
 	policyLogger.Debug("Retrieving all policies")
 
 	// create the iterator to retrieve all policies
-	resultsIterator, err := stub.GetStateByRange("policy0", "policy9")
+	resultsIterator, err := APIstub.GetStateByRange("policy0", "policy9")
 	if err != nil {
 		policyLogger.Debug("Get Policy By Range - there has been an error")
 		policyLogger.Debug(err)

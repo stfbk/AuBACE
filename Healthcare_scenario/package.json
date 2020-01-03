@@ -12,22 +12,13 @@
     "url": "git+https://github.com/stfbk/AuBACE.git"
   },
   "author": "Damiano Sartori, Alessandro Tomasi, Umberto Morelli",
-  "license": "Apache License 2.0",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/stfbk/AuBACE/issues"
   },
   "homepage": "https://github.com/stfbk/AuBACE#readme",
   "dependencies": {
-    "cryptiles": "^4.1.2",
-    "dateformat": "^3.0.3",
-    "express": "^4.17.1",
-    "extend": "^3.0.2",
     "fabric-ca-client": "1.4.4",
-    "fabric-client": "1.4.4",
-    "grpc": "^1.10.1",
-    "js-yaml": "^3.13.1",
-    "lodash": "^4.17.13",
-    "protobufjs": "^5.0.3",
-    "stringstream": "0.0.6"
+    "fabric-network": "1.4.4"
   }
 }
