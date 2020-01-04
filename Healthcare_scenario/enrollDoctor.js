@@ -14,8 +14,6 @@ const fs = require('fs');
 const path = require('path');
 
 const ccpPath = path.resolve(__dirname, '.', `connection-org${org}.json`);
-const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
-const ccp = JSON.parse(ccpJSON);
 
 async function main() {
     try {
@@ -42,7 +40,7 @@ async function main() {
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: `admin`, discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccpPath, { wallet, identity: `admin`, discovery: { enabled: true, asLocalhost: true } });
 
         // Get the CA client object from the gateway for interacting with the CA.
         const ca = gateway.getClient().getCertificateAuthority();
@@ -50,7 +48,7 @@ async function main() {
 
         // Register the user, enroll the user, and import the new identity into the wallet.
         const secret = await ca.register({ affiliation: `org${org}.department1`, enrollmentID: userString, role: 'client', attrs: [{name: 'role', value: 'General_Practitioner', ecert: true}] }, adminIdentity);
-        const enrollment = await ca.enroll({ enrollmentID: userString, enrollmentSecret: secret, role: 'client', attrs: [{name: 'role', value: 'General_Practitioner'}] });
+        const enrollment = await ca.enroll({ enrollmentID: userString, enrollmentSecret: secret, attr_reqs: [{name: 'role'}] });
         const userIdentity = X509WalletMixin.createIdentity(`Org${org}MSP`, enrollment.certificate, enrollment.key.toBytes());
         await wallet.import(userString, userIdentity);
         console.log(`Successfully registered and enrolled client user "${userString}" and imported it into the org${org} wallet`);
