@@ -9,7 +9,7 @@ COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
 COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
 # certificate authorities compose file
 COMPOSE_FILE_CA=docker-compose-ca.yaml
-
+CURRENT_DIR=$PWD
 
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
@@ -49,12 +49,16 @@ function networkDown() {
   clearContainers
   #Cleanup images
   removeUnwantedImages
+  cd "$CURRENT_DIR"
   # remove orderer block and other channel configuration transactions and certs
   rm -rf channel-artifacts/*.block channel-artifacts/*.tx crypto-config
   # remove the docker-compose yaml file that was customized to the example
   rm -f docker-compose.yaml
-
+  echo "delete enrolled identities"
+  rm -rf wallet/*.*
 }
 
 networkDown
+
+
 

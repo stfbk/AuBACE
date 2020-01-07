@@ -5,10 +5,10 @@
 var org = process.argv[2]
 var name = "patient";
 var number = process.argv[3];
-userString = name+number;
+var userString = `${name}${number}`;
 var patientCodeNumber = process.argv[4]
-var patientCode = 'FISCALCODE';
-patientCode += patientCodeNumber;
+var patientCodeString = 'FISCALCODE';
+var patientCode = `${patientCodeString}${patientCodeNumber}`;
 
 'use strict';
 
@@ -23,7 +23,7 @@ async function main() {
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), `wallet`, `org${org}`);
         const wallet = new FileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
+        console.debug(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
         const userExists = await wallet.exists(userString);
@@ -49,8 +49,9 @@ async function main() {
         const adminIdentity = gateway.getCurrentIdentity();
 
         // Register the user, enroll the user, and import the new identity into the wallet.
-        const secret = await ca.register({ affiliation: `org${org}.department1`, enrollmentID: userString, role: 'client', attrs: [{name: 'role', value: 'Patient', ecert: true},{name: 'cf', value: patientCode, ecert: true}]} }, adminIdentity);
-        const enrollment = await ca.enroll({ enrollmentID: userString, enrollmentSecret: secret, role: 'client', attrs: [{name: 'role', value: 'Patient'},{name: 'cf', value: patientCode}] });
+        const secret = await ca.register({ affiliation: `org${org}.department1`, enrollmentID: userString, role: 'client', attrs: [{name: 'role', value: 'Patient', ecert: true}, {name: 'cf', value: patientCode, ecert: true}] }, adminIdentity);
+        const enrollment = await ca.enroll({ enrollmentID: userString, enrollmentSecret: secret, attr_reqs: [{name: 'role', optional: false},{name: 'cf', optional: false}] });
+		// repeat enrollment with profile:'tls' to obtain a TLS certificate
         const userIdentity = X509WalletMixin.createIdentity(`Org${org}MSP`, enrollment.certificate, enrollment.key.toBytes());
         await wallet.import(userString, userIdentity);
         console.log(`Successfully registered and enrolled client user "${userString}" and imported it into the org${org} wallet`);
