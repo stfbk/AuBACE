@@ -6,7 +6,7 @@
 
 # This is a collection of bash functions used by different scripts
 
-ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/fbk.eu/orderers/orderer.fbk.eu/msp/tlscacerts/tlsca.fbk.eu-cert.pem
+ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/fbk.eu/orderers/orderer.fbk.eu/tls/ca.crt
 PEER0_ORG1_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 PEER0_ORG2_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 PEER0_ORG3_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt
@@ -32,7 +32,7 @@ setOrdererGlobals() {
 # set environment variables needed to send the commands to the right peers
 setGlobals () {
 
-	PEER=$1
+  PEER=$1
   ORG=$2
   if [ $ORG -eq 1 ]; then
     CORE_PEER_LOCALMSPID="Org1MSP"
@@ -175,7 +175,7 @@ installPolicyChaincode() {
 }
 
 instantiatePolicyChaincode () {
-PEER=$1
+  PEER=$1
   ORG=$2
   setGlobals $PEER $ORG
   VERSION=${3:-1.0}

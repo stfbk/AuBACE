@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Apache-2.0
 
-var abac = require('./controller.js');
+var abac = require('./controller_high.js');
 //var abac = require('./controller_x.js');
 
 module.exports = function(app){

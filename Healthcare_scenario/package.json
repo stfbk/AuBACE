@@ -1,6 +1,6 @@
 {
   "name": "healthcare_scenario",
-  "version": "1.0",
+  "version": "1.4.4",
   "description": "AUBACE use case",
   "main": "controller.js",
   "scripts": {
@@ -18,7 +18,10 @@
   },
   "homepage": "https://github.com/stfbk/AuBACE#readme",
   "dependencies": {
+	"dateformat": "^3.0.3",
+	"express": "^4.17.1",
     "fabric-ca-client": "1.4.4",
-    "fabric-network": "1.4.4"
+    "fabric-network": "1.4.4",
+	"log4js": "^0.6.38"
   }
 }

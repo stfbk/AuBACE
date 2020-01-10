@@ -35,7 +35,7 @@ peers:
 certificateAuthorities:
   ca.org${ORG}.example.com:
     url: https://localhost:${CAPORT}
-    caName: ca-org${ORG}
+    caName: ca.org${ORG}.example.com
     tlsCACerts:
       pem: |
         ${CAPEM}

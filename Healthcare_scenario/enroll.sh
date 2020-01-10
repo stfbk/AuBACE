@@ -59,5 +59,5 @@ done
 
 
 printf "\nEnrollment complete. Now start web interface with\n"
-printf "node server.js"
+printf "node app.js\n\n"
 

@@ -18,24 +18,31 @@ var util          = require('util');
 var os            = require('os');
 var dateformat 	  = require('dateformat');
 
-const peerData1 = fs.readFileSync('./crypto-config/peerOrganizations/org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem');
-const peerData2 = fs.readFileSync('./crypto-config/peerOrganizations/org2.example.com/msp/tlscacerts/tlsca.org2.example.com-cert.pem');
-const peerData3 = fs.readFileSync('./crypto-config/peerOrganizations/org3.example.com/msp/tlscacerts/tlsca.org3.example.com-cert.pem');
-const ordererData = fs.readFileSync('./crypto-config/ordererOrganizations/fbk.eu/msp/tlscacerts/tlsca.fbk.eu-cert.pem');
-const store_path = path.join(os.homedir(), '.hfc-key-store');
-console.log('Store path:'+store_path);
+var org1tlscacert_path = path.resolve(process.cwd(), 'crypto-config', 'peerOrganizations', 'org1.example.com', 'tlsca', 'tlsca.org1.example.com-cert.pem');
+var org1tlscacert = fs.readFileSync(org1tlscacert_path, 'utf8');
+var org2tlscacert_path = path.resolve(process.cwd(), 'crypto-config', 'peerOrganizations', 'org2.example.com', 'tlsca', 'tlsca.org2.example.com-cert.pem');
+var org2tlscacert = fs.readFileSync(org2tlscacert_path, 'utf8');
+var org3tlscacert_path = path.resolve(process.cwd(), 'crypto-config', 'peerOrganizations', 'org3.example.com', 'tlsca', 'tlsca.org3.example.com-cert.pem');
+var org3tlscacert = fs.readFileSync(org3tlscacert_path, 'utf8');
+var orderertlscacert_path = path.resolve(process.cwd(), 'crypto-config', 'ordererOrganizations', 'fbk.eu', 'tlsca', 'tlsca.fbk.eu-cert.pem');
+var orderertlscacert = fs.readFileSync(orderertlscacert_path, 'utf8');
+
+var log4js = require('log4js');
+var logger = log4js.getLogger('controller');
+logger.setLevel('DEBUG');
+
 
 module.exports = (function() {
 return{
 	get_all_state: function(req, res){
-		console.log("Getting all Electronic Health Record from database: ");
-		console.log("Parameters : " + req.params.parameters);
+		logger.debug("Getting all Electronic Health Record from database: ");
+		logger.debug("Parameters : " + req.params.parameters);
 		var array = req.params.parameters.split("-");
 		var identity = array[0];
 		var purpose = array[1];
-		console.log("The identity that performed the request was " + identity);
-		console.log("The purpose was " + purpose);
-		
+		logger.debug("The identity that performed the request was " + identity);
+		logger.debug("The purpose was " + purpose);
+
 		clientPromise(identity)
 		.then((fabric_client) => {
 			// txId is cound to the context (hash includes client identity)
@@ -48,22 +55,22 @@ return{
 					args: [purpose],
 					chainId: 'abac-channel'
 				};
-
+			logger.debug(`Sending get_all_state request`);
 			query_handler(fabric_client, request, res);
 
 		});
 		
 	},
 	get_ehr: function(req, res){
-		console.log("getting requested ehr from database: ");
-		console.log("Parameters: " + req.params.parameters);
+		logger.debug("getting requested ehr from database: ");
+		logger.debug("Parameters: " + req.params.parameters);
 		var array = req.params.parameters.split("-");
 		var key = array[0];
 		var identity = array[1];
 		var purpose = array[2];
-		console.log("Key: " + key);
-		console.log("Identity: " + identity);
-		console.log("Purpose: " + purpose);
+		logger.debug("Key: " + key);
+		logger.debug("Identity: " + identity);
+		logger.debug("Purpose: " + purpose);
 		
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -84,15 +91,15 @@ return{
 
 	},
 	update_ehr: function(req, res){
-		console.log("update requested for an ehr");
-		console.log("Parameters: " + req.params.ehr);
+		logger.debug("update requested for an ehr");
+		logger.debug("Parameters: " + req.params.ehr);
 		var array = req.params.ehr.split("-");
 		var key = array[0];
 		var identity = array[1];
 		var purpose = array[2];
-		console.log("Key: " + key);
-		console.log("Identity: " + identity);
-		console.log("Purpose: " + purpose);
+		logger.debug("Key: " + key);
+		logger.debug("Identity: " + identity);
+		logger.debug("Purpose: " + purpose);
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -113,17 +120,17 @@ return{
 
 	},
 	add_ehr: function(req, res){
-		console.log("submit recording of a ehr: ");
+		logger.debug("submit recording of a ehr: ");
 
 		var array = req.params.ehr.split("-");
-		console.log(array);
+		logger.debug(array);
 
 		var key = array[0];
 		var identity = array[1];
 		var purpose = array[2];
 
-		console.log("The identity selected is " + identity);
-		console.log("The purpose selected is " + purpose);
+		logger.debug("The identity selected is " + identity);
+		logger.debug("The purpose selected is " + purpose);
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -144,7 +151,7 @@ return{
 
 	},
 	update_consent: function(req, res){
-		console.log("updating consent for an electronic health record: ");
+		logger.debug("updating consent for an electronic health record: ");
 
 		var array = req.params.ehr.split("-");
 
@@ -155,7 +162,7 @@ return{
 		/*var now = new Date();
 		dateformat.masks.completeTime = "dd/mm/yyyy, HH:MM:ss";*/
 
-		console.log(key + " - " + consent + " - " + identity + "-" + purpose);
+		logger.debug(key + " - " + consent + " - " + identity + "-" + purpose);
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -163,7 +170,7 @@ return{
 
 			// get a transaction id object based on the current user assigned to fabric client
 			var tx_id = fabric_client.newTransactionID();
-			console.log("Assigning transaction_id: ", tx_id._transaction_id);
+			logger.debug("Assigning transaction_id: ", tx_id._transaction_id);
 
 			var request = {
 				//targets : --- letting this default to the peers assigned to the channel
@@ -178,7 +185,7 @@ return{
 		});
 	},
 	track_ehr: function(req, res){
-		console.log("tracking activity on health record: ");
+		logger.debug("tracking activity on health record: ");
 
 		var array = req.params.ehr.split("-");
 
@@ -189,7 +196,7 @@ return{
 		var now = new Date();
 		dateformat.masks.completeTime = "dd/mm/yyyy, HH:MM:ss";
 
-		console.log(key + " - " + identity + " - " + action);
+		logger.debug(key + " - " + identity + " - " + action);
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -211,11 +218,11 @@ return{
 	},
 
 	get_all_state_no_eval: function(req, res){
-		console.log("Getting all Electronic Health Record from database: ");
-		console.log("Parameters : " + req.params.parameters);
+		logger.debug("Getting all Electronic Health Record from database: ");
+		logger.debug("Parameters : " + req.params.parameters);
 		var array = req.params.parameters.split("-");
 		var identity = array[0];
-		console.log("The identity that performed the request was " + identity);
+		logger.debug("The identity that performed the request was " + identity);
 		
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -235,13 +242,13 @@ return{
 		});
 	},
 	get_ehr_no_eval: function(req, res){
-		console.log("getting requested ehr from database: ");
-		console.log("Parameters: " + req.params.parameters);
+		logger.debug("getting requested ehr from database: ");
+		logger.debug("Parameters: " + req.params.parameters);
 		var array = req.params.parameters.split("-");
 		var key = array[0];
 		var identity = array[1];
-		console.log("Key: " + key);
-		console.log("Identity: " + identity);
+		logger.debug("Key: " + key);
+		logger.debug("Identity: " + identity);
 		
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -261,13 +268,13 @@ return{
 		});
 	},
 	update_ehr_no_eval: function(req, res){
-		console.log("update requested for an ehr");
-		console.log("Parameters: " + req.params.ehr);
+		logger.debug("update requested for an ehr");
+		logger.debug("Parameters: " + req.params.ehr);
 		var array = req.params.ehr.split("-");
 		var key = array[0];
 		var identity = array[1];
-		console.log("Key: " + key);
-		console.log("Identity: " + identity);
+		logger.debug("Key: " + key);
+		logger.debug("Identity: " + identity);
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -288,15 +295,15 @@ return{
 
 	},
 	add_ehr_no_eval: function(req, res){
-		console.log("submit recording of a ehr: ");
+		logger.debug("submit recording of a ehr: ");
 
 		var array = req.params.ehr.split("-");
-		console.log(array);
+		logger.debug(array);
 
 		var key = array[0];
 		var identity = array[1];
 
-		console.log("The identity selected is " + identity);
+		logger.debug("The identity selected is " + identity);
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -316,7 +323,7 @@ return{
 		});
 	},
 	update_consent_no_eval: function(req, res){
-		console.log("updating consent for an electronic health record: ");
+		logger.debug("updating consent for an electronic health record: ");
 
 		var array = req.params.ehr.split("-");
 
@@ -326,7 +333,7 @@ return{
 		/*var now = new Date();
 		dateformat.masks.completeTime = "dd/mm/yyyy, HH:MM:ss";*/
 
-		console.log(key + " - " + consent + " - " + identity );
+		logger.debug(key + " - " + consent + " - " + identity );
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -347,7 +354,7 @@ return{
 		
 	},
 	track_ehr_no_eval: function(req, res){
-		console.log("tracking activity on health record: ");
+		logger.debug("tracking activity on health record: ");
 
 		var array = req.params.ehr.split("-");
 
@@ -357,7 +364,7 @@ return{
 		var now = new Date();
 		dateformat.masks.completeTime = "dd/mm/yyyy, HH:MM:ss";
 
-		console.log(key + " - " + identity + " - " + action);
+		logger.debug(key + " - " + identity + " - " + action);
 
 		clientPromise(identity)
 		.then((fabric_client) => {
@@ -394,15 +401,15 @@ function invoke_handler(fabric_client, request, res){
 	    if (proposalResponses && proposalResponses[0].response &&
 	        proposalResponses[0].response.status === 200) {
 	            isProposalGood = true;
-	            console.log('Transaction proposal was good');
+	            logger.debug('Transaction proposal was good');
 	        } else {
-	            console.error('Transaction proposal was bad');
+	            logger.error('Transaction proposal was bad');
 			}
 	    if (isProposalGood) {
-	        console.log(util.format(
+	        logger.debug(util.format(
 	            'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s"',
 	            proposalResponses[0].response.status, proposalResponses[0].response.message));
-			console.log(proposalResponses[0].response.payload.toString());
+			logger.debug(proposalResponses[0].response.payload.toString());
 
 	        // build up the request for the orderer to have the transaction committed
 	        var tx = {
@@ -422,7 +429,7 @@ function invoke_handler(fabric_client, request, res){
 	        // get an eventhub once the fabric client has a user assigned. The user
 	        // is required bacause the event registration must be signed
 	        let event_hub = fabric_client.newEventHub();
-	        event_hub.setPeerAddr('grpcs://localhost:7053', {pem: Buffer.from(peerData1).toString(), 'ssl-target-name-override': 'peer0.org1.example.com'});
+	        event_hub.setPeerAddr('grpcs://localhost:7053', {pem: org1tlscacert, 'ssl-target-name-override': 'peer0.org1.example.com'});
 
 	        // using resolve the promise so that result status may be processed
 	        // under the then clause rather than having the catch clause process
@@ -443,10 +450,10 @@ function invoke_handler(fabric_client, request, res){
 	                // now let the application know what happened
 	                var return_status = {event_status : code, tx_id : tx_id_string};
 	                if (code !== 'VALID') {
-	                    console.error('The transaction was invalid, code = ' + code);
+	                    logger.error('The transaction was invalid, code = ' + code);
 	                    resolve(return_status); // we could use reject(new Error('Problem with the tranaction, event status ::'+code));
 	                } else {
-	                    console.log('The transaction has been committed on peer ' + event_hub._ep._endpoint.addr);
+	                    logger.debug('The transaction has been committed on peer ' + event_hub._ep._endpoint.addr);
 	                    resolve(return_status);
 	                }
 	            }, (err) => {
@@ -458,27 +465,27 @@ function invoke_handler(fabric_client, request, res){
 
 	        return Promise.all(promises);
 	    } else {
-	        console.error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
+	        logger.error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
 			throw new Error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
 	    }
 	}).then((results) => {
-	    console.log('Send transaction promise and event listener promise have completed');
+	    logger.debug('Send transaction promise and event listener promise have completed');
 	    // check the results in the order the promises were added to the promise all list
 	    if (results && results[0] && results[0].status === 'SUCCESS') {
-	        console.log('Successfully sent transaction to the orderer.');
+	        logger.debug('Successfully sent transaction to the orderer.');
 	        res.send(tx_id_string);
 	    } else {
-	        console.error('Failed to order the transaction. Error code: ' + response.status);
+	        logger.error('Failed to order the transaction. Error code: ' + response.status);
 	    }
 
 	    if(results && results[1] && results[1].event_status === 'VALID') {
-	        console.log('Successfully committed the change to the ledger by the peer');
+	        logger.debug('Successfully committed the change to the ledger by the peer');
 	        res.send(tx_id_string);
 	    } else {
-	        console.log('Transaction failed to be committed to the ledger due to ::'+results[1].event_status);
+	        logger.debug('Transaction failed to be committed to the ledger due to ::'+results[1].event_status);
 	    }
 	}).catch((err) => {
-		console.error('Failed to invoke successfully :: ' + err);
+		logger.error('Failed to invoke successfully :: ' + err);
 		res.send("The client does not have the rights to perform the request.");
 	});
 
@@ -491,48 +498,43 @@ function query_handler(fabric_client, request, res){
 	// send the query proposal to the peer
 	channel.queryByChaincode(request
 	).then((query_responses) => {
-		console.log("Query has completed, checking results");
+		logger.debug("Query has completed, checking results");
 		// query_responses could have more than one  results if there multiple peers were used as targets
 		if (query_responses && query_responses.length >= 1) {
 			if (query_responses[0] instanceof Error) {
-			    console.error("error from query = ", query_responses[0]);
+			    logger.error("error from query = ", query_responses[0]);
 			    //E.g.: "{ Error: 2 UNKNOWN: chaincode error (status: 500, message: The client does not have the rights to write the selected electronic health record)"
 			    res.json("{\"Message\":\""+query_responses[0].toString()+"\"}");
 			} else {
-			    console.log("Response [0] is ", query_responses[0].toString());
+			    logger.debug("Response [0] is ", query_responses[0].toString());
 			    res.json(JSON.parse(query_responses[0].toString()));
 				for(let i = 0; i < query_responses.length; i++) {
-					console.log(util.format('Query result from peer [%s]: %s', i, query_responses[i].toString('utf8')));
+					logger.debug(util.format('Query result from peer [%s]: %s', i, query_responses[i].toString('utf8')));
 				}
 			}
 		} else {
-			console.log("No payloads were returned from query");
+			logger.debug("No payloads were returned from query");
 		}
 	}).catch((err) => {
-		console.error('Failed to query successfully :: ' + err);
+		logger.error('Failed to query successfully :: ' + err);
 	});
 }
 
 function clientPromise(identity){
-	
+	var org = getOrgByUsername(identity);
+	var store_path = path.join(process.cwd(), `wallet`, `org${org}`, identity);
 	return new Promise(function(resolve, reject) {
 		var fabric_client = new Fabric_Client();
-
-		var peer0_org1 = fabric_client.newPeer('grpcs://localhost:7051', {pem: Buffer.from(peerData1).toString(), 'ssl-target-name-override': 'peer0.org1.example.com'});
 		
-		var peer0_org2 = fabric_client.newPeer('grpcs://localhost:8051', {pem: Buffer.from(peerData2).toString(), 'ssl-target-name-override': 'peer0.org2.example.com'});
+		var peer0_org1 = fabric_client.newPeer('grpcs://localhost:7051', {pem: org1tlscacert, 'ssl-target-name-override': 'peer0.org1.example.com'});
+		
+		var peer0_org2 = fabric_client.newPeer('grpcs://localhost:9051', {pem: org2tlscacert, 'ssl-target-name-override': 'peer0.org2.example.com'});
 
-		var peer0_org3 = fabric_client.newPeer('grpcs://localhost:9051', {pem: Buffer.from(peerData3).toString(), 'ssl-target-name-override': 'peer0.org3.example.com'});
-/*
-		var peer1_org1 = fabric_client.newPeer('grpcs://localhost:7056', {pem: Buffer.from(peerData1).toString(), 'ssl-target-name-override': 'peer1.org1.example.com'});
+		var peer0_org3 = fabric_client.newPeer('grpcs://localhost:11051', {pem: org3tlscacert, 'ssl-target-name-override': 'peer0.org3.example.com'});
 
-		var peer1_org2 = fabric_client.newPeer('grpcs://localhost:8056', {pem: Buffer.from(peerData2).toString(), 'ssl-target-name-override': 'peer1.org2.example.com'});
-
-		var peer1_org3 = fabric_client.newPeer('grpcs://localhost:9056', {pem: Buffer.from(peerData3).toString(), 'ssl-target-name-override': 'peer1.org3.example.com'});
-*/
 		var channel = fabric_client.newChannel('abac-channel')
 
-		var order = fabric_client.newOrderer('grpcs://localhost:7050', {pem: Buffer.from(ordererData).toString(), 'ssl-target-name-override': 'orderer.fbk.eu'});
+		var order = fabric_client.newOrderer('grpcs://localhost:7050', {pem: orderertlscacert, 'ssl-target-name-override': 'orderer.fbk.eu'});
 		channel.addOrderer(order);
 
 		channel.addPeer(peer0_org1);
@@ -546,16 +548,19 @@ function clientPromise(identity){
 		Fabric_Client.newDefaultKeyValueStore({ path: store_path
 			}).then((state_store) => {
 			fabric_client.setStateStore(state_store);
+			logger.debug(`State store set.`)
 			var crypto_suite = Fabric_Client.newCryptoSuite();
 			// use the same location for the state store (where the users' certificate are kept)
 			// and the crypto store (where the users' keys are kept)
 			var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
 			crypto_suite.setCryptoKeyStore(crypto_store);
 			fabric_client.setCryptoSuite(crypto_suite);
-			return fabric_client.getUserContext(identity, true);
+			var context = fabric_client.getUserContext(identity, true);
+			logger.debug(`fabric_client.getUserContext: ${context}`);
+			return context;
 		}).then((user_from_store) => {
 			if (user_from_store && user_from_store.isEnrolled()) {
-				console.log('Successfully loaded ' + identity + ' from persistence');
+				logger.debug('Successfully loaded ' + identity + ' from persistence');
 				resolve(fabric_client);
 			} else {
 				reject(new Error('Failed to get ' + identity + ' .... run registerUser.js'));
@@ -568,9 +573,9 @@ function clientPromise(identity){
 
 
 
-function selectIdentity(identity, fabric_client){
-	var config = {};
-	switch (identity){
+function getOrgByUsername(username){
+	var org;
+	switch (username){
 		case 'doctor1': 
 		case 'data1':
 		case 'nurse1':
@@ -675,22 +680,15 @@ function selectIdentity(identity, fabric_client){
 		case 'patient99':
 		case 'patient100':
 		case 'emergency1':
-						config.store_path = path.join(os.homedir(), '.hfc-key-store'); 
-						config.peerData = fs.readFileSync('./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem')
-						config.peer = fabric_client.newPeer('grpcs://localhost:7051', {pem: Buffer.from(config.peerData).toString(), 'ssl-target-name-override': 'peer0.org1.example.com'});
+						org = 1;
 						break;
 		case 'doctor2': 
 		case 'nurse2':
-						config.store_path = path.join(os.homedir(), '.hfc-key-store'); 
-						config.peerData = fs.readFileSync('./crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp/tlscacerts/tlsca.org2.example.com-cert.pem')
-						config.peer = fabric_client.newPeer('grpcs://localhost:8051', {pem: Buffer.from(config.peerData).toString(), 'ssl-target-name-override': 'peer0.org2.example.com'});
+						org = 2;
 						break;
 		case 'nurse3': 
-						config.store_path = path.join(os.homedir(), '.hfc-key-store'); 
-						config.peerData = fs.readFileSync('./crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp/tlscacerts/tlsca.org3.example.com-cert.pem')
-						config.peer = fabric_client.newPeer('grpcs://localhost:9051', {pem: Buffer.from(config.peerData).toString(), 'ssl-target-name-override': 'peer0.org3.example.com'});
+						org = 3;
 						break;
 	}
-	console.log(config);
-	return config;
+	return org;
 }

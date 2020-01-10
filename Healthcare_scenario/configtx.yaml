@@ -287,24 +287,24 @@ Orderer: &OrdererDefaults
         Consenters:
             - Host: orderer.fbk.eu
               Port: 7050
-              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.fbk.eu/tls/server.crt
-              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.fbk.eu/tls/server.crt
+              ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer.fbk.eu/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer.fbk.eu/tls/server.crt
             - Host: orderer2.fbk.eu
               Port: 7050
-              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.fbk.eu/tls/server.crt
-              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.fbk.eu/tls/server.crt
+              ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer2.fbk.eu/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer2.fbk.eu/tls/server.crt
             - Host: orderer3.fbk.eu
               Port: 7050
-              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.fbk.eu/tls/server.crt
-              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.fbk.eu/tls/server.crt
+              ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer3.fbk.eu/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer3.fbk.eu/tls/server.crt
             - Host: orderer4.fbk.eu
               Port: 7050
-              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.fbk.eu/tls/server.crt
-              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.fbk.eu/tls/server.crt
+              ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer4.fbk.eu/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer4.fbk.eu/tls/server.crt
             - Host: orderer5.fbk.eu
               Port: 7050
-              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.fbk.eu/tls/server.crt
-              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.fbk.eu/tls/server.crt
+              ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer5.fbk.eu/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer5.fbk.eu/tls/server.crt
 
     # Organizations is the list of orgs which are defined as participants on
     # the orderer side of the network
@@ -435,24 +435,24 @@ Profiles:
                 Consenters:
                 - Host: orderer.fbk.eu
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.fbk.eu/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.fbk.eu/tls/server.crt
+                  ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer.fbk.eu/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer.fbk.eu/tls/server.crt
                 - Host: orderer2.fbk.eu
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.fbk.eu/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.fbk.eu/tls/server.crt
+                  ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer2.fbk.eu/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer2.fbk.eu/tls/server.crt
                 - Host: orderer3.fbk.eu
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.fbk.eu/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.fbk.eu/tls/server.crt
+                  ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer3.fbk.eu/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer3.fbk.eu/tls/server.crt
                 - Host: orderer4.fbk.eu
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.fbk.eu/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.fbk.eu/tls/server.crt
+                  ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer4.fbk.eu/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer4.fbk.eu/tls/server.crt
                 - Host: orderer5.fbk.eu
                   Port: 7050
-                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.fbk.eu/tls/server.crt
-                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.fbk.eu/tls/server.crt
+                  ClientTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer5.fbk.eu/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/fbk.eu/orderers/orderer5.fbk.eu/tls/server.crt
             Addresses:
                 - orderer.fbk.eu:7050
                 - orderer2.fbk.eu:7050

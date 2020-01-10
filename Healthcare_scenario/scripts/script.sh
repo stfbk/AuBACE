@@ -159,7 +159,7 @@ echo "|_____| |_| \_| |____/  "
 echo
 echo "Network setup completed. Now, to register users and start the web client, type: "
 echo "./enroll.sh"
-echo "node server.js"
+echo "node app.js"
 echo
 
 exit 0

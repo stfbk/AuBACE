@@ -21,7 +21,6 @@ async function main() {
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), `wallet`, `org${org}`);
         const wallet = new FileSystemWallet(walletPath);
-        console.debug(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
         const userExists = await wallet.exists(userString);

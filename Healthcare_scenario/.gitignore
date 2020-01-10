@@ -12,6 +12,8 @@ node_modules/
 
 *_sk
 
+*-priv
+
 .idea/
 
 .vscode/
