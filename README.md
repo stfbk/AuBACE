@@ -13,7 +13,7 @@ To run our Healthcare use case, use the launcher *start.sh* and follow the instr
 
 The core requirements are derived from Hyperledger Fabric, with smart contracts written in go and client software in nodejs.
 
-* [Hyperledger Fabric v.1.4.4](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html)
+* [Hyperledger Fabric v.1.4.8](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html)
 * [docker](https://docs.docker.com)
 * [cURL](http://curl.haxx.se/download.html)
 * [goLang](https://golang.org/dl/) (follow also the guide to reach the *gopath* folder via the PATH environment variable)
@@ -25,26 +25,24 @@ The core requirements are derived from Hyperledger Fabric, with smart contracts 
 1.	Install requirements:
 
 ```shell
-sudo apt install python-software-properties gcc g++ make docker.io docker-compose npm nodejs golang
+sudo apt install software-properties-common gcc g++ make docker.io docker-compose npm nodejs golang
 sudo usermod -aG docker $USER
 ```
 
 Log out and back in for the group evaluation to take effect. If running in a virtual machine, you may need to restart it instead.
 
-2. Install [Hyperledger Fabric Binaries and docker images v.1.4.4](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html)
+2. Install [Hyperledger Fabric Binaries and docker images v.1.4.8](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html)
 ```shell
-curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.4.4 1.4.4 0.4.8
+curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.4.8 1.4.8 0.4.21
 ````
 
-3. Add the following lines to ~\/.profile:
+3. Add the following line to ~\/.profile:
 
 ```shell
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
 export PATH=<path to fabric-samples location>/bin:$PATH
-'''
+```
 
-where the ''path to download location'' is the path to the ''fabric-samples'' directory downloaded with cUrl, above.
+where the ''path to download location'' is the path to the ''fabric-samples'' directory downloaded with cUrl, above. For go version less than 1.13, also add `export PATH=$PATH:$GOPATH/bin`; newer versions do not require this.
 
 ```shell
 source ~/.profile
