@@ -7,7 +7,26 @@ Given the diffusion and impact of insider attacks, and the constraints and guara
 Additional information can be found at [sites.google.com/fbk.eu/aubace](https://sites.google.com/fbk.eu/aubace).
 
 ## Usage
-To run our Healthcare use case, use the launcher *start.sh* and follow the instructions; to stop it, use *stop.sh* (Linux) or *stop-win.bat* (Windows). A testing dashboard is available at *localhost:8000*.
+
+To run our Healthcare use case: start the network; enroll users, if it hasn't been done already; and open the web app to interact with the ledger.
+
+```bash
+./start_network.sh
+./enroll.sh
+node app.js
+```
+
+The test dashboard is available at `localhost:8000`.
+
+Please check the output of each script.
+
+To stop the network:
+
+```bash
+./stop_network.sh
+```
+
+(Linux) or `stop-win.bat` (Windows). 
 
 ## Requirements
 

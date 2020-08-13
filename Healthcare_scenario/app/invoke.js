@@ -45,7 +45,8 @@ const invokeChaincode = async function(channelName, chaincodeName, fcn, args, us
 		return response;
     } catch (error) {
         logger.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
+        //process.exit(1);
+        return error;
     }
 
 	

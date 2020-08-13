@@ -46,7 +46,8 @@ const queryChaincode = async function(channelName, chaincodeName, fcn, args, use
 		return response;
     } catch (error) {
         logger.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
+        //process.exit(1);
+        return error;
     }
 
 	

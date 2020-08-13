@@ -56,11 +56,12 @@ function checkPrereqs() {
 function networkUp() {
   checkPrereqs
   echo ".. Generate crypto material .."
-
-  generateCerts
-  replacePrivateKey
-  generateChannelArtifacts
-
+  # generate artifacts if they don't exist
+  if [ ! -d "crypto-config" ]; then
+    generateCerts
+    replacePrivateKey
+    generateChannelArtifacts
+  fi
   echo ".. Start containers .."
 
   COMPOSE_FILES="-f ${COMPOSE_FILE}"
