@@ -49,7 +49,7 @@ done
 printf "\nEnrolling template EMTs\n"
 for (( EMT=1; EMT<=$NUM_EMTS; EMT++ ))
 do
-  node enrollEMT.js $org $nurse &
+  node enrollEMT.js $org $EMT &
   wait $!
 done
 
