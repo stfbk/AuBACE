@@ -1,7 +1,7 @@
 {
   "name": "healthcare_scenario",
-  "version": "1.4.4",
-  "description": "AUBACE use case",
+  "version": "1.4.8",
+  "description": "AuBACE use case",
   "main": "controller.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -20,8 +20,8 @@
   "dependencies": {
 	"dateformat": "^3.0.3",
 	"express": "^4.17.1",
-    "fabric-ca-client": "1.4.4",
-    "fabric-network": "1.4.4",
+    "fabric-ca-client": "1.4.8",
+    "fabric-network": "1.4.8",
 	"log4js": "^0.6.38"
   }
 }
