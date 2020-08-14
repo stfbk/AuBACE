@@ -1,4 +1,4 @@
-channel-artifacts/
+channel-artifacts/**
 
 crypto-config/
 
@@ -16,4 +16,5 @@ node_modules/
 
 .vscode/
 
+wallet/
 
