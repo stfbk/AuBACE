@@ -8,7 +8,7 @@ Additional information can be found at [sites.google.com/fbk.eu/aubace](https://
 
 ## Usage
 
-To run our Healthcare use case: start the network; enroll users, if it hasn't been done already; and open the web app to interact with the ledger.
+To run our Healthcare use case: start the network; enroll users, if it hasn't been done already; run the web app and open the browser to interact with the ledger.
 
 ```bash
 ./start_network.sh
@@ -16,9 +16,7 @@ To run our Healthcare use case: start the network; enroll users, if it hasn't be
 node app.js
 ```
 
-The test dashboard is available at `localhost:8000`.
-
-Please check the output of each script.
+Please check the output of each script. If receiving an error associated with the Docker *orderer* container when starting the network, stop the network (with the command below), ensure that the *channel-artifacts* folder exists (and is empty) and manually remove the *crypto-config* folder; then attempt the running again.
 
 To stop the network:
 
@@ -26,7 +24,35 @@ To stop the network:
 ./stop_network.sh
 ```
 
-(Linux) or `stop-win.bat` (Windows). 
+The test dashboard is available at `localhost:8000`. Allowed operations in the web app are:
+
+### Auditing / Emergency
+
+  < Data1, *Auditing*, *Query All Electronic Health Record Saved* >
+
+  < Emergency1, *Emergency services*,  *Query All Electronic Health Record Saved* / *Query a Specific Electronic Health Record (Tax code of any patient)*  >
+
+### Doctors / Nurses
+
+  < Doctor1/2, *Preventive medicine* / *Medical Diagnosis* / *Provision of care*, *Query a Specific Electronic Health Record* / *Ask for permission to update Electronic Health Record*  (Tax Code of a patient with consent set to true beforehand) >
+
+  < Doctor1/2, *Preventive medicine* / *Medical Diagnosis* / *Provision of care*, *Create Electronic Health Record*  (non pre-existing Tax Code) >
+
+  < Nurse1/2, *Provision of care*, *Query a Specific Electronic Health Record* (Tax Code of a patient with consent set to true beforehand)  >
+
+### Patients
+
+  < Patient1, *Whatever*, *Query a Specific Electronic Health Record* (RSSSTF63M05C112S) /  *Update Consent on Electronic Health Record* (true/false)>
+
+  < Patient2, *Whatever*, *Query a Specific Electronic Health Record (BNCCRL85M12C143Y)* /  *Update Consent on Electronic Health Record* (true/false) >
+
+  < Patient3, *Whatever*, *Query a Specific Electronic Health Record (VRDNNA97F01S432I)* /  *Update Consent on Electronic Health Record* (true/false) >
+
+  < Patient4, *Whatever*, *Query a Specific Electronic Health Record (SMNGVN96M03A111S)* /  *Update Consent on Electronic Health Record* (true/false) >
+
+  < Patient5, *Whatever*, *Query a Specific Electronic Health Record (RSSALS45F11R021T)* /  *Update Consent on Electronic Health Record* (true/false) >
+
+For testing purposes, the enrolling script also registers the identities of patient6 (FISCALCODE1) to patient15 (FISCALCODE10); their operations can be performed via `http://127.0.0.1:8000/get_ehr/FISCALCODEX-patientY-whatever` and `http://localhost:8000/update_consent/FISCALCODEX-true-patientY-whatever` once their EHR has been created by a doctor (e.g., via < Doctor1, *Provision of care*, *Create Electronic Health Record*  (FISCALCODE1) >).
 
 ## Requirements
 
@@ -36,7 +62,7 @@ The core requirements are derived from Hyperledger Fabric, with smart contracts 
 * [docker](https://docs.docker.com)
 * [cURL](http://curl.haxx.se/download.html)
 * [goLang](https://golang.org/dl/) (follow also the guide to reach the *gopath* folder via the PATH environment variable)
-* [node v. 8.16](https://nodejs.org/dist/latest-v8.x)
+* [node](https://nodejs.org) (tested with v10.19.0 and v12.18.3)
 * *software-properties-common*, *gcc*, *g++* and *make*.
 
 ## Installation (linux)
@@ -68,9 +94,8 @@ source ~/.profile
 ```
 or log out and back in to apply changes.
 
-The YAML files are configured to run the docker images tagged as *latest*: if Hyperledger containers are updated, modify the YAML files to select v.1.4.4 images (e.g., *hyperledger/fabric-ca:x86_64-1.4.4* instead of *hyperledger/fabric-ca*). 
+The YAML files are configured to run the docker images tagged as *latest*: if Hyperledger containers are updated, modify the YAML files to select v.1.4.8 images (e.g., *hyperledger/fabric-ca:x86_64-1.4.8* instead of *hyperledger/fabric-ca*). 
 
 4.	Download (or clone) the Healthcare\_scenario in this repo.
 
 5.	`npm install` in your Healthcare\_scenario folder.
-

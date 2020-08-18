@@ -12,6 +12,9 @@ var Fabric_Client = require('fabric-client');
 var path          = require('path');
 var util          = require('util');
 var os            = require('os');
+var log4js			= require('log4js');
+var logger = log4js.getLogger('AuBACE server');
+var host = 'localhost';
 
 // Load all of our middleware
 // configure app to use bodyParser()
@@ -26,8 +29,6 @@ var app = express();
 // this line requires and runs the code from our routes.js file and passes it app
 require('./routes.js')(app);
 
-
-
 // set up a static file server that points to the "client" directory
 app.use(express.static(path.join(__dirname, './client')));
 
@@ -36,8 +37,24 @@ const args = process.argv.slice(2)
 // Save our port
 var port = process.env.PORT || args[0];
 
+/*
 // Start the server and listen on port 
 app.listen(port,function(){
-  console.log = function() {}
+  console.log("Live on port: " + port);
 });
+*/
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////////////// START SERVER /////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+var server = app.listen(port, function() {});
+logger.info('****************** SERVER STARTED ************************');
+logger.info('***************  http://%s:%s  ******************',host,port);
+server.timeout = 240000;
 
+function getErrorMessage(field) {
+	var response = {
+		success: false,
+		message: field + ' field is missing or Invalid in the request'
+	};
+	return response;
+}
